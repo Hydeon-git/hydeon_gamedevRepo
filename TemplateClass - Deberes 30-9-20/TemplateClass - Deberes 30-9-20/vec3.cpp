@@ -65,15 +65,13 @@ public:
 		else
 		{
 			return false;
-		}
-		
+		}		
 	}
 
-	vec3 Normalize()
+	void Normalize()
 	{
 		int lenght = sqrt((x * 2) + (y * 2) + (z * 2));
 		vec3 normVec((x/lenght), (y / lenght), (z / lenght));
-		return normVec;
 	}
 	void Zero()
 	{
@@ -92,11 +90,8 @@ public:
 			return false;
 		}
 	}
-	vec3 DistanceTo(vec3 vector1)
+	void DistanceTo(vec3 vector1)
 	{
-		vec3 point(3, 2, 5);
-		vec3 distance(vector1.x - point.x, vector1.y - point.y, vector1.z - point.z);
-		return distance;
+		sqrt((x - vector1.x) + (y - vector1.y) + (z - vector1.z));
 	}
-
 };
