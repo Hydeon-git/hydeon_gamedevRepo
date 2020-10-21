@@ -5,6 +5,7 @@
 #include "Textures.h"
 #include "Audio.h"
 #include "Scene.h"
+#include "Map.h"
 
 #include "Defs.h"
 #include "Log.h"
@@ -23,6 +24,7 @@ App::App(int argc, char* args[]) : argc(argc), args(args)
 	tex = new Textures();
 	audio = new Audio();
 	scene = new Scene();
+	map = new Map();
 
 	// Ordered for awake / Start / Update
 	// Reverse order of CleanUp
@@ -31,6 +33,7 @@ App::App(int argc, char* args[]) : argc(argc), args(args)
 	AddModule(tex);
 	AddModule(audio);
 	AddModule(scene);
+	AddModule(map);
 
 	// Render last to swap buffer
 	AddModule(render);
@@ -275,13 +278,23 @@ const char* App::GetOrganization() const
 void App::LoadGameRequest()
 {
 	// NOTE: We should check if SAVE_STATE_FILENAME actually exist
-	loadGameRequested = true;
+	pugi::xml_document savestateFile;
+	pugi::xml_parse_result result = savestateFile.load_file(SAVE_STATE_FILENAME);
+	if (result != NULL) {
+		loadGameRequested = true;
+	}
 }
 
 // ---------------------------------------
 void App::SaveGameRequest() const
 {
 	// NOTE: We should check if SAVE_STATE_FILENAME actually exist and... should we overwriten
+	pugi::xml_document savestateFile;
+	pugi::xml_parse_result result = savestateFile.load_file(SAVE_STATE_FILENAME);
+	if (result == NULL) {
+		SDL_RWFromFile(SAVE_STATE_FILENAME, "w");
+	}
+
 	saveGameRequested = true;
 }
 
@@ -292,7 +305,30 @@ bool App::LoadGame()
 {
 	bool ret = false;
 
-	//...
+	pugi::xml_document data;
+	pugi::xml_node root;
+
+	//Load savegame.xml file using load_file() method from the xml_document class
+	pugi::xml_parse_result result = data.load_file(SAVE_STATE_FILENAME);
+
+	//Check result for loading errors
+	if (result != NULL)
+	{
+		LOG("Loading game state from %s", SAVE_STATE_FILENAME);
+
+		root = data.child("save_state");
+		ListItem<Module*>* item = modules.start;
+		ret = true;
+		while (item != NULL && ret == true)
+		{
+			ret = item->data->LoadState(root.child(item->data->name.GetString()));
+			item = item->next;
+		}
+	}
+	else
+	{
+		LOG("Could not load game state from %s. Pugi error: %s", SAVE_STATE_FILENAME, result.description());
+	}
 
 	loadGameRequested = false;
 
@@ -304,7 +340,24 @@ bool App::SaveGame() const
 {
 	bool ret = true;
 
-	//...
+	LOG("Saving game state to %s", SAVE_STATE_FILENAME);
+
+	pugi::xml_document data;
+	pugi::xml_node root;
+
+	root = data.append_child("save_state");
+
+	ListItem<Module*>* item = modules.start;
+
+	while (item != NULL && ret == true)
+	{
+		ret = item->data->SaveState(root.append_child(item->data->name.GetString()));
+		item = item->next;
+	}
+
+	if (ret == true) {
+		data.save_file(SAVE_STATE_FILENAME);
+	}
 
 	saveGameRequested = false;
 

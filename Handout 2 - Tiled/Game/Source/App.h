@@ -109,6 +109,8 @@ private:
 
 	mutable bool saveGameRequested;
 	bool loadGameRequested;
+
+	SString saveloadFile;
 };
 
 extern App* app;
