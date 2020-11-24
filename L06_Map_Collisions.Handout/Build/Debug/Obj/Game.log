@@ -1,0 +1,13 @@
+﻿  Main.cpp
+  App.cpp
+  Audio.cpp
+  Input.cpp
+  Map.cpp
+  Scene.cpp
+  Render.cpp
+  Textures.cpp
+  Window.cpp
+  Log.cpp
+  pugixml.cpp
+  Generating Code...
+  Game.vcxproj -> E:\UPC\2n\GameDev\hydeon_gamedevRepo\L06_Map_Collisions.Handout\Build\Debug\Game.exe
