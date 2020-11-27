@@ -45,41 +45,53 @@ bool Map::Awake(pugi::xml_node& config)
 }
 
 
-void Map::ResetPath()
+void Map::ResetPath(iPoint start)
 {
 	frontier.Clear();
 	visited.Clear();
+	breadcrumbs.Clear();
     
-	frontier.Push(iPoint(19, 4));
-	visited.Add(iPoint(19, 4));
+	frontier.Push(start, 0);
+	visited.Add(start);
+	breadcrumbs.Add(start);
+
+	memset(costSoFar, 0, sizeof(uint) * COST_MAP_SIZE * COST_MAP_SIZE);
 }
 
 void Map::PropagateBFS()
 {
-	// L10: TODO 1: If frontier queue contains elements
-	// pop the last one and calculate its 4 neighbors
 	iPoint current;
 	if (frontier.Pop(current))
 	{
-		// L10: TODO 2: For each neighbor, if not visited, add it
-		// to the frontier queue and visited list
 		iPoint neighbors[4];
 		neighbors[0].create(current.x + 1, current.y + 0);
 		neighbors[1].create(current.x + 0, current.y + 1);
 		neighbors[2].create(current.x - 1, current.y + 0);
 		neighbors[3].create(current.x + 0, current.y - 1);
-
+		
 		for (uint i = 0; i < 4; i++)
 		{
-			if (visited.Find(neighbors[i]) == -1)
+			if (MovementCost(neighbors[i].x, neighbors[i].y) > 0)
 			{
-				frontier.Push(neighbors[i]);
-				visited.Add(neighbors[i]);
+				if (visited.Find(neighbors[i]) == -1)
+				{
+					frontier.Push(neighbors[i], 0);
+					visited.Add(neighbors[i]);
+
+					// L11: TODO 1: Record the direction to the previous node 
+					// with the new list "breadcrumps"
+					breadcrumbs.Add(current);
+				}
 			}
 		}
 	}
+}
 
-	
+void Map::PropagateDijkstra()
+{
+	// L11: TODO 3: Taking BFS as a reference, implement the Dijkstra algorithm
+	// use the 2 dimensional array "costSoFar" to track the accumulated costs
+	// on each cell (is already reset to 0 automatically)
 }
 
 void Map::DrawPath()
@@ -113,6 +125,32 @@ void Map::DrawPath()
 
 		app->render->DrawTexture(tileset->texture, pos.x, pos.y, &rec);
 	}
+
+}
+
+int Map::MovementCost(int x, int y) const
+{
+	int ret = -1;
+
+	if ((x >= 0) && (x < data.width) && (y >= 0) && (y < data.height))
+	{
+		int id = data.layers.start->next->data->Get(x, y);
+
+		if (id == 0) ret = 3;
+		else ret = 0;
+	}
+
+	return ret;
+}
+
+void Map::ComputePath(int x, int y)
+{
+	path.Clear();
+	iPoint goal = WorldToMap(x, y);
+
+	// L11: TODO 2: Follow the breadcrumps to goal back to the origin
+	// add each step into "path" dyn array (it will then draw automatically)
+	
 
 }
 

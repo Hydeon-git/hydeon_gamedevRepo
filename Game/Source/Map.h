@@ -3,10 +3,13 @@
 
 #include "Module.h"
 #include "List.h"
-#include "Queue.h"
+#include "PQueue.h"
 #include "Point.h"
+#include "DynArray.h"
 
 #include "PugiXml\src\pugixml.hpp"
+
+#define COST_MAP_SIZE	100
 
 // L03: DONE 2: Create a struct to hold information for a TileSet
 // Ignore Terrain Types and Tile Types for now, but we want the image!
@@ -132,18 +135,23 @@ public:
     // Load new map
     bool Load(const char* path);
 
-	// L04: DONE 8: Create a method that translates x,y coordinates from map positions to world positions
+	// Create a method that translates x,y coordinates from map positions to world positions
 	iPoint MapToWorld(int x, int y) const;
 
-	// L05: DONE 2: Add orthographic world to map coordinates
+	//  Add orthographic world to map coordinates
 	iPoint WorldToMap(int x, int y) const;
     
-    // L10: BFS Pathfinding methods
-	void ResetPath();
+    // BFS Methods
+	void ResetPath(iPoint start);
 	void DrawPath();
 
-	// Propagate methods
+	// Dijkstra Methods
+	int MovementCost(int x, int y) const;
+	void ComputePath(int x, int y);
+
+	// Propagate Methods
 	void PropagateBFS();
+	void PropagateDijkstra();
 
 private:
 
@@ -170,9 +178,14 @@ private:
     SString folder;
     bool mapLoaded;
     
-	// L10: BFS Pathfinding variables
-	Queue<iPoint> frontier;
+	// BFS Variables
+	PQueue<iPoint> frontier;
 	List<iPoint> visited;
+
+	// Dijkstra Variables
+	List<iPoint> breadcrumbs;
+	uint costSoFar[COST_MAP_SIZE][COST_MAP_SIZE];
+	DynArray<iPoint> path;
 };
 
 #endif // __MAP_H__
